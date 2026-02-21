@@ -1,17 +1,14 @@
 // Script para criar o primeiro usuário admin
-// Rodar com: npx tsx scripts/create-admin.ts
-// Requer as variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no .env.local
+// Rodar com: npx tsx scripts/create-admin.ts <email> <senha>
+// Requer as variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY exportadas no terminal
 
 import { createClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-
-config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
-    console.error('Defina NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no .env.local');
+    console.error('Exporte NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY antes de rodar');
     process.exit(1);
 }
 
