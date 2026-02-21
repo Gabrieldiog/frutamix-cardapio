@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -9,9 +10,24 @@ import './admin.css';
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
+    const isLoginPage = pathname === '/admin/login';
 
     if (loading) {
         return <div className="admin-loading">Carregando...</div>;
+    }
+
+    // Not logged in and not on login page → redirect to login
+    if (!user && !isLoginPage) {
+        router.replace('/admin/login');
+        return <div className="admin-loading">Redirecionando...</div>;
+    }
+
+    // Logged in and on login page → redirect to admin
+    if (user && isLoginPage) {
+        router.replace('/admin/orders');
+        return <div className="admin-loading">Redirecionando...</div>;
     }
 
     // Login page - no sidebar/header
