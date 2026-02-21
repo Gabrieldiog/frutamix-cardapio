@@ -103,9 +103,11 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <button className="modal-close" onClick={onClose} aria-label="Fechar">
-                    <CloseIcon size={24} />
-                </button>
+                <div className="modal-close-wrapper">
+                    <button className="modal-close" onClick={onClose} aria-label="Fechar">
+                        <CloseIcon size={24} />
+                    </button>
+                </div>
 
                 {product.image_url ? (
                     <div className="modal-image-wrapper">
