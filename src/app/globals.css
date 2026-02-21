@@ -1341,6 +1341,14 @@ body {
   margin-bottom: 10px;
 }
 
+.modal-addons-flavor-hint {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 500;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
 .modal-addon-free {
   font-size: 0.78rem;
   font-weight: 600;

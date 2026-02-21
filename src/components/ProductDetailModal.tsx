@@ -64,31 +64,65 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
         return { effectiveAddons: map, addonsTotal: total };
     }, [addonGroups, selectedAddons]);
 
-    const totalPrice = product.price + addonsTotal;
+    // Identify flavor group item IDs
+    const flavorItemIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const pag of addonGroups) {
+            if (!pag.is_flavor) continue;
+            const group = pag.addon_groups;
+            if (!group?.addon_items) continue;
+            for (const item of group.addon_items) ids.add(item.id);
+        }
+        return ids;
+    }, [addonGroups]);
+
+    const hasFlavorGroups = addonGroups.some(pag => pag.is_flavor);
 
     // Build SelectedAddon[] with effective prices for cart
-    const selectedAddonsList: SelectedAddon[] = useMemo(() => {
-        const list: SelectedAddon[] = [];
+    const { flavorAddons, nonFlavorAddons } = useMemo(() => {
+        const flavor: SelectedAddon[] = [];
+        const nonFlavor: SelectedAddon[] = [];
         for (const pag of addonGroups) {
             const group = pag.addon_groups;
             if (!group?.addon_items) continue;
             for (const item of group.addon_items) {
                 if (selectedSet.has(item.id)) {
                     const eff = effectiveAddons.get(item.id);
-                    list.push({
+                    const addon: SelectedAddon = {
                         id: item.id,
                         name: item.name,
                         price: eff ? eff.effectivePrice : item.price,
                         group: group.name,
-                    });
+                    };
+                    if (flavorItemIds.has(item.id)) {
+                        flavor.push(addon);
+                    } else {
+                        nonFlavor.push(addon);
+                    }
                 }
             }
         }
-        return list;
-    }, [addonGroups, selectedSet, effectiveAddons]);
+        return { flavorAddons: flavor, nonFlavorAddons: nonFlavor };
+    }, [addonGroups, selectedSet, effectiveAddons, flavorItemIds]);
+
+    // Calculate total considering flavor = separate items
+    const flavorCount = hasFlavorGroups ? Math.max(flavorAddons.length, 1) : 1;
+    const nonFlavorTotal = nonFlavorAddons.reduce((s, a) => s + a.price, 0);
+    const flavorPriceTotal = flavorAddons.reduce((s, a) => s + a.price, 0);
+    const totalPrice = hasFlavorGroups && flavorAddons.length > 0
+        ? flavorCount * (product.price + nonFlavorTotal) + flavorPriceTotal
+        : product.price + addonsTotal;
 
     const handleAdd = () => {
-        addItem(product, 1, selectedAddonsList);
+        if (hasFlavorGroups && flavorAddons.length > 0) {
+            // Each flavor = 1 separate cart item with non-flavor addons included
+            for (const flavorAddon of flavorAddons) {
+                addItem(product, 1, [flavorAddon, ...nonFlavorAddons]);
+            }
+        } else {
+            // Normal behavior: 1 item with all addons
+            addItem(product, 1, [...flavorAddons, ...nonFlavorAddons]);
+        }
         setAdded(true);
         setTimeout(() => {
             setAdded(false);
@@ -136,6 +170,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                     if (!group?.addon_items || group.addon_items.length === 0) return null;
 
                     const freeLimit = pag.free_addon_limit || 0;
+                    const isFlavor = pag.is_flavor || false;
                     const selectedInGroup = group.addon_items.filter(i => selectedSet.has(i.id)).length;
                     const freeUsed = Math.min(selectedInGroup, freeLimit);
                     const freeRemaining = Math.max(0, freeLimit - selectedInGroup);
@@ -153,6 +188,11 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                                     </span>
                                 )}
                             </div>
+                            {isFlavor && (
+                                <div className="modal-addons-flavor-hint">
+                                    Cada sabor = 1 item no carrinho
+                                </div>
+                            )}
                             {freeLimit > 0 && (
                                 <div className="modal-addons-subtitle">
                                     {freeLimit === 1 ? 'Primeiro' : `Primeiros ${freeLimit}`} grátis!
@@ -184,9 +224,12 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                     );
                 })}
 
-                {addonsTotal > 0 && (
+                {(addonsTotal > 0 || (hasFlavorGroups && flavorAddons.length > 1)) && (
                     <div className="modal-addons-subtotal">
-                        Total: {formatPrice(totalPrice)}
+                        {hasFlavorGroups && flavorAddons.length > 1
+                            ? `${flavorAddons.length} itens — Total: ${formatPrice(totalPrice)}`
+                            : `Total: ${formatPrice(totalPrice)}`
+                        }
                     </div>
                 )}
 
@@ -198,7 +241,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                     {added ? (
                         <><CheckIcon size={20} color="#fff" /> Adicionado!</>
                     ) : (
-                        <><PlusIcon size={20} color="#fff" /> Adicionar ao carrinho{addonsTotal > 0 ? ` ${formatPrice(totalPrice)}` : ''}</>
+                        <><PlusIcon size={20} color="#fff" /> Adicionar{hasFlavorGroups && flavorAddons.length > 1 ? ` ${flavorAddons.length} itens` : ' ao carrinho'}{totalPrice > product.price ? ` ${formatPrice(totalPrice)}` : ''}</>
                     )}
                 </button>
             </div>

@@ -9,6 +9,7 @@ import ImageUpload from './ImageUpload';
 interface SelectedGroup {
     group_id: string;
     free_addon_limit: string;
+    is_flavor: boolean;
 }
 
 interface ProductFormProps {
@@ -21,7 +22,7 @@ interface ProductFormProps {
         available: boolean;
         image_url: string;
         old_image_path?: string;
-        addon_groups?: { group_id: string; free_addon_limit: number }[];
+        addon_groups?: { group_id: string; free_addon_limit: number; is_flavor: boolean }[];
     }) => Promise<void>;
     isLoading: boolean;
 }
@@ -58,6 +59,7 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
             setSelectedGroups(product.product_addon_groups.map(pag => ({
                 group_id: pag.group_id,
                 free_addon_limit: pag.free_addon_limit.toString(),
+                is_flavor: pag.is_flavor || false,
             })));
         }
     }, [product]);
@@ -68,13 +70,19 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
             if (exists) {
                 return prev.filter(g => g.group_id !== groupId);
             }
-            return [...prev, { group_id: groupId, free_addon_limit: '0' }];
+            return [...prev, { group_id: groupId, free_addon_limit: '0', is_flavor: false }];
         });
     };
 
     const updateGroupLimit = (groupId: string, value: string) => {
         setSelectedGroups(prev =>
             prev.map(g => g.group_id === groupId ? { ...g, free_addon_limit: value } : g)
+        );
+    };
+
+    const toggleFlavor = (groupId: string) => {
+        setSelectedGroups(prev =>
+            prev.map(g => g.group_id === groupId ? { ...g, is_flavor: !g.is_flavor } : g)
         );
     };
 
@@ -134,6 +142,7 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
                 addon_groups: selectedGroups.map(g => ({
                     group_id: g.group_id,
                     free_addon_limit: parseInt(g.free_addon_limit) || 0,
+                    is_flavor: g.is_flavor,
                 })),
             });
         } catch (err) {
@@ -250,16 +259,27 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
                                             </div>
                                             {isSelected && (
                                                 <div className="addon-group-card-limit">
-                                                    <label className="form-label">Gratuitos:</label>
-                                                    <input
-                                                        type="number"
-                                                        className="form-input addon-max-input"
-                                                        placeholder="0"
-                                                        min="0"
-                                                        value={selectedGroup?.free_addon_limit || '0'}
-                                                        onChange={e => updateGroupLimit(group.id, e.target.value)}
-                                                    />
-                                                    <span className="addon-max-hint">0 = todos pagos</span>
+                                                    <div className="addon-group-card-row">
+                                                        <label className="form-label">Gratuitos:</label>
+                                                        <input
+                                                            type="number"
+                                                            className="form-input addon-max-input"
+                                                            placeholder="0"
+                                                            min="0"
+                                                            value={selectedGroup?.free_addon_limit || '0'}
+                                                            onChange={e => updateGroupLimit(group.id, e.target.value)}
+                                                        />
+                                                        <span className="addon-max-hint">0 = todos pagos</span>
+                                                    </div>
+                                                    <div className="addon-group-card-row">
+                                                        <label className="form-label">Sabor:</label>
+                                                        <button
+                                                            type="button"
+                                                            className={`toggle-switch ${selectedGroup?.is_flavor ? 'active' : ''}`}
+                                                            onClick={() => toggleFlavor(group.id)}
+                                                        />
+                                                        <span className="addon-max-hint">cada sabor = 1 item</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

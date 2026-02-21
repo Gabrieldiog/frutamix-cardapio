@@ -25,6 +25,7 @@ export interface ProductAddonGroup {
     product_id: string;
     group_id: string;
     free_addon_limit: number;
+    is_flavor: boolean;
     created_at: string;
     addon_groups?: AddonGroup;
 }

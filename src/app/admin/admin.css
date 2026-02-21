@@ -1029,11 +1029,17 @@
 
 .addon-group-card-limit {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 10px;
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px solid #f0ecf5;
+}
+
+.addon-group-card-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .addon-group-card-limit .form-label {
