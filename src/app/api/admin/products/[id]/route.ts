@@ -78,6 +78,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
             .eq('id', id)
             .single();
 
+        // Delete related order_items first (foreign key)
+        await supabaseAdmin
+            .from('order_items')
+            .delete()
+            .eq('product_id', id);
+
         // Delete product
         const { error } = await supabaseAdmin
             .from('products')
