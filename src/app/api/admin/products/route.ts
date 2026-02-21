@@ -51,10 +51,11 @@ export async function POST(request: NextRequest) {
 
         // Link addon groups if provided
         if (addon_groups && addon_groups.length > 0) {
-            const rows = addon_groups.map((g: { group_id: string; free_addon_limit: number }) => ({
+            const rows = addon_groups.map((g: { group_id: string; free_addon_limit: number; is_flavor: boolean }) => ({
                 product_id: data.id,
                 group_id: g.group_id,
                 free_addon_limit: g.free_addon_limit || 0,
+                is_flavor: g.is_flavor || false,
             }));
             await supabaseAdmin.from('product_addon_groups').insert(rows);
         }
