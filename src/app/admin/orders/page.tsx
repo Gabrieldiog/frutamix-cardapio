@@ -168,13 +168,49 @@ export default function AdminOrdersPage() {
                                 </div>
 
                                 <div className="admin-order-items">
-                                    {order.order_items.map(item => (
-                                        <div key={item.id} className="admin-order-item">
-                                            <span className="admin-order-item-qty">{item.quantity}x</span>
-                                            <span className="admin-order-item-name">{item.product_name}</span>
-                                            <span className="admin-order-item-price">{formatPrice(item.subtotal)}</span>
-                                        </div>
-                                    ))}
+                                    {order.order_items.map(item => {
+                                        // Group addons by category
+                                        const addonsByGroup: Record<string, { name: string; price: number }[]> = {};
+                                        if (item.addons && item.addons.length > 0) {
+                                            for (const a of item.addons) {
+                                                const groupName = a.group || 'Adicionais';
+                                                if (!addonsByGroup[groupName]) addonsByGroup[groupName] = [];
+                                                addonsByGroup[groupName].push({ name: a.name, price: a.price });
+                                            }
+                                        }
+                                        const hasAddons = Object.keys(addonsByGroup).length > 0;
+
+                                        return (
+                                            <div key={item.id} className="admin-order-item">
+                                                <span className="admin-order-item-qty">{item.quantity}x</span>
+                                                <div className="admin-order-item-info">
+                                                    <span className="admin-order-item-name">{item.product_name}</span>
+                                                    {hasAddons && (
+                                                        <div className="admin-order-addon-groups">
+                                                            {Object.entries(addonsByGroup).map(([groupName, addons]) => (
+                                                                <div key={groupName} className="admin-order-addon-group">
+                                                                    <span className="admin-order-addon-group-name">{groupName}</span>
+                                                                    <div className="admin-order-addon-list">
+                                                                        {addons.map((a, i) => (
+                                                                            <span key={i} className="admin-order-addon-item">
+                                                                                {a.name}
+                                                                                {a.price === 0 ? (
+                                                                                    <span className="admin-order-addon-badge free">grátis</span>
+                                                                                ) : (
+                                                                                    <span className="admin-order-addon-badge paid">+{formatPrice(a.price)}</span>
+                                                                                )}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="admin-order-item-price">{formatPrice(item.subtotal)}</span>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="admin-order-footer">

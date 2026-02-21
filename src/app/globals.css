@@ -518,6 +518,12 @@ body {
   color: var(--text-primary);
 }
 
+.cart-item-addons {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+
 .cart-item-price {
   font-size: 0.8rem;
   color: var(--text-secondary);
@@ -718,17 +724,31 @@ body {
 .checkout-item {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   padding: 6px 0;
   font-size: 0.85rem;
+}
+
+.checkout-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .checkout-item-name {
   color: var(--text-primary);
 }
 
+.checkout-item-addons {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
 .checkout-item-price {
   color: var(--text-secondary);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .checkout-total {
@@ -1147,12 +1167,12 @@ body {
 .modal-content {
   background: white;
   border-radius: 20px 20px 0 0;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
   width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 24px;
+  padding: 0;
   position: relative;
   animation: modal-slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1164,9 +1184,10 @@ body {
 
 .modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  background: var(--bg-secondary);
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
   border: none;
   border-radius: 50%;
   width: 36px;
@@ -1175,36 +1196,43 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1;
-  color: var(--text-secondary);
+  z-index: 2;
+  color: white;
   transition: var(--transition);
 }
 
 .modal-close:hover {
-  background: var(--border-color);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-image-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  background: #f0ecf5;
 }
 
 .modal-product-image {
   width: 100%;
-  max-height: 250px;
-  object-fit: cover;
-  border-radius: var(--radius-lg);
-  margin-bottom: 16px;
+  max-height: 350px;
+  object-fit: contain;
+  display: block;
 }
 
 .modal-product-image-placeholder {
   width: 100%;
   height: 180px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--primary-ultralight) 0%, var(--primary-light) 100%);
+  border-radius: 20px 20px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
 }
 
 .modal-product-info {
-  margin-bottom: 20px;
+  padding: 20px 24px 0;
+  margin-bottom: 16px;
 }
 
 .modal-product-name {
@@ -1231,12 +1259,134 @@ body {
 }
 
 .modal-add-button {
-  width: 100%;
+  width: calc(100% - 48px);
+  margin: 16px 24px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-align: center;
+}
+
+/* ==================== */
+/* Modal Addons         */
+/* ==================== */
+
+.modal-addons {
+  padding: 0 24px;
+  margin-bottom: 16px;
+}
+
+.modal-addons-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-addons-counter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-ultralight);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.modal-addons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-addon-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid #e0d5eb;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.modal-addon-item:hover {
+  border-color: var(--primary-light);
+  background: #faf8fc;
+}
+
+.modal-addon-item.selected {
+  border-color: var(--primary);
+  background: var(--primary-ultralight);
+}
+
+.modal-addons-subtitle {
+  font-size: 0.8rem;
+  color: var(--success);
+  font-weight: 500;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+.modal-addon-free {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--success);
+  background: #e8f5e9;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.modal-addon-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid #ccc;
+  flex-shrink: 0;
+  transition: var(--transition);
+  position: relative;
+}
+
+.modal-addon-checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.modal-addon-checkbox.checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.modal-addon-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.modal-addon-price {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.modal-addons-subtotal {
+  margin-top: 10px;
+  padding: 0 24px;
+  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 /* ==================== */

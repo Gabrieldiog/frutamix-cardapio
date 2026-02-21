@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
         const body = await request.json();
-        const { name, description, price, category_id, image_url, available } = body;
+        const { name, description, price, category_id, image_url, available, addon_groups } = body;
 
         if (!name?.trim()) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 });
         if (!price || price <= 0) return NextResponse.json({ error: 'Preço inválido' }, { status: 400 });
@@ -48,6 +48,17 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+        // Link addon groups if provided
+        if (addon_groups && addon_groups.length > 0) {
+            const rows = addon_groups.map((g: { group_id: string; free_addon_limit: number }) => ({
+                product_id: data.id,
+                group_id: g.group_id,
+                free_addon_limit: g.free_addon_limit || 0,
+            }));
+            await supabaseAdmin.from('product_addon_groups').insert(rows);
+        }
+
         return NextResponse.json({ product: data }, { status: 201 });
     } catch {
         return NextResponse.json({ error: 'Erro interno' }, { status: 500 });

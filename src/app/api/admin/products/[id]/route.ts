@@ -11,7 +11,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
         const { data, error } = await supabaseAdmin
             .from('products')
-            .select('*, categories(name)')
+            .select('*, categories(name), product_addon_groups(*, addon_groups(*, addon_items(*)))')
             .eq('id', id)
             .single();
 
@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
         const body = await request.json();
-        const { name, description, price, category_id, image_url, available, old_image_path } = body;
+        const { name, description, price, category_id, image_url, available, old_image_path, addon_groups } = body;
 
         if (!name?.trim()) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 });
         if (!price || price <= 0) return NextResponse.json({ error: 'Preço inválido' }, { status: 400 });
@@ -52,6 +52,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             .single();
 
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+        // Replace addon group links: delete all existing, then insert new ones
+        if (addon_groups !== undefined) {
+            await supabaseAdmin.from('product_addon_groups').delete().eq('product_id', id);
+            if (addon_groups && addon_groups.length > 0) {
+                const rows = addon_groups.map((g: { group_id: string; free_addon_limit: number }) => ({
+                    product_id: id,
+                    group_id: g.group_id,
+                    free_addon_limit: g.free_addon_limit || 0,
+                }));
+                await supabaseAdmin.from('product_addon_groups').insert(rows);
+            }
+        }
 
         // Delete old image from storage if replaced
         if (old_image_path) {
@@ -84,7 +97,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
             .delete()
             .eq('product_id', id);
 
-        // Delete product
+        // Delete product (CASCADE handles product_addon_groups)
         const { error } = await supabaseAdmin
             .from('products')
             .delete()

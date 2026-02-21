@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Product, Category } from '@/types';
+import { Product, Category, AddonGroup } from '@/types';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@/components/Icons';
 import ImageUpload from './ImageUpload';
+
+interface SelectedGroup {
+    group_id: string;
+    free_addon_limit: string;
+}
 
 interface ProductFormProps {
     product?: Product;
@@ -16,6 +21,7 @@ interface ProductFormProps {
         available: boolean;
         image_url: string;
         old_image_path?: string;
+        addon_groups?: { group_id: string; free_addon_limit: number }[];
     }) => Promise<void>;
     isLoading: boolean;
 }
@@ -31,11 +37,46 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
     const [error, setError] = useState('');
     const [imageError, setImageError] = useState('');
 
+    // Addon groups
+    const [allGroups, setAllGroups] = useState<AddonGroup[]>([]);
+    const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([]);
+
+    // Load categories and addon groups
     useEffect(() => {
         fetch('/api/categories')
             .then(res => res.json())
             .then(data => setCategories(data.categories || []));
+
+        fetch('/api/admin/addons')
+            .then(res => res.json())
+            .then(data => setAllGroups(data.groups || []));
     }, []);
+
+    // Load existing product addon groups when editing
+    useEffect(() => {
+        if (product?.product_addon_groups && product.product_addon_groups.length > 0) {
+            setSelectedGroups(product.product_addon_groups.map(pag => ({
+                group_id: pag.group_id,
+                free_addon_limit: pag.free_addon_limit.toString(),
+            })));
+        }
+    }, [product]);
+
+    const toggleGroup = (groupId: string) => {
+        setSelectedGroups(prev => {
+            const exists = prev.find(g => g.group_id === groupId);
+            if (exists) {
+                return prev.filter(g => g.group_id !== groupId);
+            }
+            return [...prev, { group_id: groupId, free_addon_limit: '0' }];
+        });
+    };
+
+    const updateGroupLimit = (groupId: string, value: string) => {
+        setSelectedGroups(prev =>
+            prev.map(g => g.group_id === groupId ? { ...g, free_addon_limit: value } : g)
+        );
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,7 +87,6 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
         if (!price || parseFloat(price) <= 0) { setError('Preço inválido'); return; }
         if (!categoryId) { setError('Selecione uma categoria'); return; }
 
-        // Image is required for new products
         if (!product && !imageFile) {
             setImageError('Foto é obrigatória');
             return;
@@ -56,7 +96,6 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
             let imageUrl = product?.image_url || '';
             let oldImagePath: string | undefined;
 
-            // Upload new image if selected
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('file', imageFile);
@@ -73,7 +112,6 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
 
                 const uploadData = await uploadRes.json();
 
-                // If editing and replacing image, track old path for deletion
                 if (product?.image_url) {
                     const marker = '/storage/v1/object/public/product-images/';
                     const idx = product.image_url.indexOf(marker);
@@ -93,6 +131,10 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
                 available,
                 image_url: imageUrl,
                 old_image_path: oldImagePath,
+                addon_groups: selectedGroups.map(g => ({
+                    group_id: g.group_id,
+                    free_addon_limit: parseInt(g.free_addon_limit) || 0,
+                })),
             });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -187,6 +229,45 @@ export default function ProductForm({ product, onSubmit, isLoading }: ProductFor
                             />
                         </div>
                     </div>
+
+                    {/* Addon Groups Section */}
+                    {allGroups.length > 0 && (
+                        <div className="addons-section">
+                            <label className="form-label">Grupos de Adicionais</label>
+                            <div className="addon-groups-select">
+                                {allGroups.map(group => {
+                                    const isSelected = selectedGroups.some(g => g.group_id === group.id);
+                                    const selectedGroup = selectedGroups.find(g => g.group_id === group.id);
+                                    const itemNames = group.addon_items?.map(i => i.name).join(', ') || '';
+                                    return (
+                                        <div key={group.id} className={`addon-group-card ${isSelected ? 'selected' : ''}`}>
+                                            <div className="addon-group-card-header" onClick={() => toggleGroup(group.id)}>
+                                                <div className={`modal-addon-checkbox ${isSelected ? 'checked' : ''}`} />
+                                                <div className="addon-group-card-info">
+                                                    <strong>{group.name}</strong>
+                                                    {itemNames && <span className="addon-group-card-items">{itemNames}</span>}
+                                                </div>
+                                            </div>
+                                            {isSelected && (
+                                                <div className="addon-group-card-limit">
+                                                    <label className="form-label">Gratuitos:</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input addon-max-input"
+                                                        placeholder="0"
+                                                        min="0"
+                                                        value={selectedGroup?.free_addon_limit || '0'}
+                                                        onChange={e => updateGroupLimit(group.id, e.target.value)}
+                                                    />
+                                                    <span className="addon-max-hint">0 = todos pagos</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {error && <div className="admin-login-error" style={{ marginTop: 16 }}>{error}</div>}
 

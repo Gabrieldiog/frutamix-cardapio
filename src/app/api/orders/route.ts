@@ -42,13 +42,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Erro ao criar pedido.' }, { status: 500 });
         }
 
-        // Create order items
+        // Create order items (with addons as JSONB)
         const orderItems = items.map((item: {
             product_id: string;
             product_name: string;
             quantity: number;
             unit_price: number;
             subtotal: number;
+            addons?: { id: string; name: string; price: number }[];
         }) => ({
             order_id: order.id,
             product_id: item.product_id,
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
             quantity: item.quantity,
             unit_price: item.unit_price,
             subtotal: item.subtotal,
+            addons: item.addons || [],
         }));
 
         const { error: itemsError } = await supabase

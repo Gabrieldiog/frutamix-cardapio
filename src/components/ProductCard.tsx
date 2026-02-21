@@ -15,9 +15,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     const [added, setAdded] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
+    const hasAddons = (product.product_addon_groups || []).length > 0;
+
     const handleAdd = (e: React.MouseEvent) => {
         e.stopPropagation();
-        addItem(product);
+        if (hasAddons) {
+            setShowModal(true);
+            return;
+        }
+        addItem(product, 1, []);
         setAdded(true);
         setTimeout(() => setAdded(false), 600);
     };

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
         let query = supabase
             .from('products')
-            .select('*')
+            .select('*, product_addon_groups(*, addon_groups(*, addon_items(*)))')
             .eq('available', true)
             .order('name', { ascending: true });
 

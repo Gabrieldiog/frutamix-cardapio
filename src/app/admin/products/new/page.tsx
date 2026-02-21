@@ -15,6 +15,7 @@ export default function NewProductPage() {
         category_id: string;
         available: boolean;
         image_url: string;
+        addon_groups?: { group_id: string; free_addon_limit: number }[];
     }) => {
         setLoading(true);
         const res = await fetch('/api/admin/products', {

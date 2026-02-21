@@ -1,6 +1,6 @@
 'use client';
 
-import { useCart } from '@/contexts/CartContext';
+import { useCart, cartItemKey } from '@/contexts/CartContext';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { CartIcon, FruitIcon, ArrowLeftIcon, ArrowRightIcon, TrashIcon, MinusIcon, PlusIcon } from '@/components/Icons';
@@ -34,53 +34,64 @@ export default function CartPage() {
                 ) : (
                     <>
                         <div className="cart-items">
-                            {items.map(item => (
-                                <div key={item.product.id} className="cart-item">
-                                    {item.product.image_url ? (
-                                        <img
-                                            src={item.product.image_url}
-                                            alt={item.product.name}
-                                            className="cart-item-image"
-                                        />
-                                    ) : (
-                                        <div className="cart-item-image-placeholder">
-                                            <FruitIcon size={32} color="var(--primary)" />
+                            {items.map(item => {
+                                const key = cartItemKey(item.product.id, item.addons);
+                                const addonsPrice = (item.addons || []).reduce((s, a) => s + a.price, 0);
+                                const unitPrice = item.product.price + addonsPrice;
+
+                                return (
+                                    <div key={key} className="cart-item">
+                                        {item.product.image_url ? (
+                                            <img
+                                                src={item.product.image_url}
+                                                alt={item.product.name}
+                                                className="cart-item-image"
+                                            />
+                                        ) : (
+                                            <div className="cart-item-image-placeholder">
+                                                <FruitIcon size={32} color="var(--primary)" />
+                                            </div>
+                                        )}
+                                        <div className="cart-item-info">
+                                            <div className="cart-item-name">{item.product.name}</div>
+                                            {item.addons && item.addons.length > 0 && (
+                                                <div className="cart-item-addons">
+                                                    {item.addons.map(a => a.name).join(', ')}
+                                                </div>
+                                            )}
+                                            <div className="cart-item-price">{formatPrice(unitPrice)}</div>
                                         </div>
-                                    )}
-                                    <div className="cart-item-info">
-                                        <div className="cart-item-name">{item.product.name}</div>
-                                        <div className="cart-item-price">{formatPrice(item.product.price)}</div>
+                                        <div className="cart-item-actions">
+                                            <div className="quantity-controls">
+                                                <button
+                                                    className={`qty-btn ${item.quantity === 1 ? 'remove' : ''}`}
+                                                    onClick={() => {
+                                                        if (item.quantity === 1) {
+                                                            removeItem(key);
+                                                        } else {
+                                                            updateQuantity(key, item.quantity - 1);
+                                                        }
+                                                    }}
+                                                    aria-label="Diminuir quantidade"
+                                                >
+                                                    {item.quantity === 1 ? <TrashIcon size={14} /> : <MinusIcon size={14} />}
+                                                </button>
+                                                <span className="qty-value">{item.quantity}</span>
+                                                <button
+                                                    className="qty-btn"
+                                                    onClick={() => updateQuantity(key, item.quantity + 1)}
+                                                    aria-label="Aumentar quantidade"
+                                                >
+                                                    <PlusIcon size={14} />
+                                                </button>
+                                            </div>
+                                            <div className="cart-item-subtotal">
+                                                {formatPrice(unitPrice * item.quantity)}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="cart-item-actions">
-                                        <div className="quantity-controls">
-                                            <button
-                                                className={`qty-btn ${item.quantity === 1 ? 'remove' : ''}`}
-                                                onClick={() => {
-                                                    if (item.quantity === 1) {
-                                                        removeItem(item.product.id);
-                                                    } else {
-                                                        updateQuantity(item.product.id, item.quantity - 1);
-                                                    }
-                                                }}
-                                                aria-label="Diminuir quantidade"
-                                            >
-                                                {item.quantity === 1 ? <TrashIcon size={14} /> : <MinusIcon size={14} />}
-                                            </button>
-                                            <span className="qty-value">{item.quantity}</span>
-                                            <button
-                                                className="qty-btn"
-                                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                                aria-label="Aumentar quantidade"
-                                            >
-                                                <PlusIcon size={14} />
-                                            </button>
-                                        </div>
-                                        <div className="cart-item-subtotal">
-                                            {formatPrice(item.product.price * item.quantity)}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <div className="cart-summary">

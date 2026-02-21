@@ -29,6 +29,7 @@ export default function EditProductPage() {
         available: boolean;
         image_url: string;
         old_image_path?: string;
+        addon_groups?: { group_id: string; free_addon_limit: number }[];
     }) => {
         setSaving(true);
         const res = await fetch(`/api/admin/products/${params.id}`, {

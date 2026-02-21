@@ -5,6 +5,37 @@ export interface Category {
     created_at: string;
 }
 
+export interface AddonGroup {
+    id: string;
+    name: string;
+    created_at: string;
+    addon_items?: AddonItem[];
+}
+
+export interface AddonItem {
+    id: string;
+    group_id: string;
+    name: string;
+    price: number;
+    created_at: string;
+}
+
+export interface ProductAddonGroup {
+    id: string;
+    product_id: string;
+    group_id: string;
+    free_addon_limit: number;
+    created_at: string;
+    addon_groups?: AddonGroup;
+}
+
+export interface SelectedAddon {
+    id: string;
+    name: string;
+    price: number;
+    group?: string;
+}
+
 export interface Product {
     id: string;
     category_id: string;
@@ -14,11 +45,13 @@ export interface Product {
     image_url: string | null;
     available: boolean;
     created_at: string;
+    product_addon_groups?: ProductAddonGroup[];
 }
 
 export interface CartItem {
     product: Product;
     quantity: number;
+    addons: SelectedAddon[];
 }
 
 export type PaymentMethod = 'pix' | 'cartao' | 'dinheiro';
@@ -57,6 +90,7 @@ export interface OrderItem {
     quantity: number;
     unit_price: number;
     subtotal: number;
+    addons?: SelectedAddon[];
 }
 
 // Admin types

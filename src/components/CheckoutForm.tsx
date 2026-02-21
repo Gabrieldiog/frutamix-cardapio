@@ -56,13 +56,18 @@ export default function CheckoutForm() {
                 change_for: paymentMethod === 'dinheiro' && !noChangeNeeded
                     ? parseFloat(changeFor)
                     : null,
-                items: items.map(item => ({
-                    product_id: item.product.id,
-                    product_name: item.product.name,
-                    quantity: item.quantity,
-                    unit_price: item.product.price,
-                    subtotal: item.product.price * item.quantity,
-                })),
+                items: items.map(item => {
+                    const addonsPrice = (item.addons || []).reduce((s, a) => s + a.price, 0);
+                    const unitPrice = item.product.price + addonsPrice;
+                    return {
+                        product_id: item.product.id,
+                        product_name: item.product.name,
+                        quantity: item.quantity,
+                        unit_price: unitPrice,
+                        subtotal: unitPrice * item.quantity,
+                        addons: item.addons || [],
+                    };
+                }),
                 total,
             };
 
@@ -91,16 +96,27 @@ export default function CheckoutForm() {
             {/* Order Summary */}
             <div className="checkout-summary">
                 <div className="checkout-summary-title">Resumo do pedido</div>
-                {items.map(item => (
-                    <div key={item.product.id} className="checkout-item">
-                        <span className="checkout-item-name">
-                            {item.quantity}x {item.product.name}
-                        </span>
-                        <span className="checkout-item-price">
-                            {formatPrice(item.product.price * item.quantity)}
-                        </span>
-                    </div>
-                ))}
+                {items.map((item, idx) => {
+                    const addonsPrice = (item.addons || []).reduce((s, a) => s + a.price, 0);
+                    const unitPrice = item.product.price + addonsPrice;
+                    return (
+                        <div key={idx} className="checkout-item">
+                            <div className="checkout-item-details">
+                                <span className="checkout-item-name">
+                                    {item.quantity}x {item.product.name}
+                                </span>
+                                {item.addons && item.addons.length > 0 && (
+                                    <span className="checkout-item-addons">
+                                        {item.addons.map(a => a.name).join(', ')}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="checkout-item-price">
+                                {formatPrice(unitPrice * item.quantity)}
+                            </span>
+                        </div>
+                    );
+                })}
                 <div className="checkout-total">
                     <span>Total</span>
                     <span>{formatPrice(total)}</span>
