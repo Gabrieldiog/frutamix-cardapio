@@ -62,7 +62,7 @@ export default function PedidoPage() {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 15000);
+        const interval = setInterval(fetchOrders, 9000);
         return () => clearInterval(interval);
     }, [fetchOrders]);
 
