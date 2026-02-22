@@ -59,6 +59,7 @@ export type PaymentMethod = 'pix' | 'cartao' | 'dinheiro';
 
 export interface OrderData {
     customer_name: string;
+    customer_phone: string;
     customer_address: string;
     payment_method: PaymentMethod;
     change_for: number | null;
@@ -75,6 +76,7 @@ export interface OrderData {
 export interface Order {
     id: string;
     customer_name: string;
+    customer_phone: string;
     customer_address: string;
     payment_method: PaymentMethod;
     change_for: number | null;

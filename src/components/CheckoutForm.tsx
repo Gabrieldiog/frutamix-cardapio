@@ -11,6 +11,7 @@ export default function CheckoutForm() {
     const router = useRouter();
 
     const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
     const [changeFor, setChangeFor] = useState('');
@@ -26,6 +27,7 @@ export default function CheckoutForm() {
         const newErrors: Record<string, string> = {};
 
         if (!name.trim()) newErrors.name = 'Informe seu nome';
+        if (!phone.trim()) newErrors.phone = 'Informe seu telefone';
         if (!address.trim()) newErrors.address = 'Informe seu endereço';
         if (!paymentMethod) newErrors.payment = 'Selecione o método de pagamento';
 
@@ -51,6 +53,7 @@ export default function CheckoutForm() {
         try {
             const orderData = {
                 customer_name: name.trim(),
+                customer_phone: phone.trim(),
                 customer_address: address.trim(),
                 payment_method: paymentMethod,
                 change_for: paymentMethod === 'dinheiro' && !noChangeNeeded
@@ -145,6 +148,18 @@ export default function CheckoutForm() {
                         onChange={e => setName(e.target.value)}
                     />
                     {errors.name && <div className="form-error">{errors.name}</div>}
+                </div>
+                <div className="form-group">
+                    <label className="form-label" htmlFor="phone">Telefone</label>
+                    <input
+                        id="phone"
+                        type="tel"
+                        className={`form-input ${errors.phone ? 'error' : ''}`}
+                        placeholder="(00) 00000-0000"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                    />
+                    {errors.phone && <div className="form-error">{errors.phone}</div>}
                 </div>
                 <div className="form-group">
                     <label className="form-label" htmlFor="address">Endereço de entrega</label>

@@ -5,10 +5,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        const { customer_name, customer_address, payment_method, change_for, items, total } = body;
+        const { customer_name, customer_phone, customer_address, payment_method, change_for, items, total } = body;
 
         // Validation
-        if (!customer_name || !customer_address || !payment_method || !items || items.length === 0) {
+        if (!customer_name || !customer_phone || !customer_address || !payment_method || !items || items.length === 0) {
             return NextResponse.json(
                 { error: 'Dados incompletos. Preencha todos os campos obrigatórios.' },
                 { status: 400 }
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
             .from('orders')
             .insert({
                 customer_name,
+                customer_phone,
                 customer_address,
                 payment_method,
                 change_for: payment_method === 'dinheiro' ? change_for : null,
