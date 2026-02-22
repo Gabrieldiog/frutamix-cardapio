@@ -83,6 +83,14 @@ export default function CheckoutForm() {
 
             const data = await res.json();
             clearCart();
+
+            // Salvar pedido no localStorage para rastreamento
+            try {
+                const stored = JSON.parse(localStorage.getItem('frutamix-orders') || '[]');
+                stored.push({ id: data.order.id, created_at: new Date().toISOString() });
+                localStorage.setItem('frutamix-orders', JSON.stringify(stored));
+            } catch { /* ignore */ }
+
             router.push(`/order-confirmed?id=${data.order.id}`);
         } catch {
             setErrors({ submit: 'Erro ao enviar o pedido. Tente novamente.' });

@@ -24,7 +24,10 @@ function OrderConfirmedContent() {
                     <span>Pedido #{orderId.slice(0, 8).toUpperCase()}</span>
                 </div>
             )}
-            <Link href="/" className="btn-primary" style={{ maxWidth: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Link href="/pedido" className="btn-primary" style={{ maxWidth: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                Acompanhar pedido
+            </Link>
+            <Link href="/" className="btn-secondary" style={{ maxWidth: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 }}>
                 <ArrowLeftIcon size={18} /> Voltar ao cardápio
             </Link>
         </div>
