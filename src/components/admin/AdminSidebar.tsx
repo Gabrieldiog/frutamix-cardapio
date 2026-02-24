@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ClipboardIcon, BoxIcon, TagIcon, UsersIcon, LayersIcon, ExternalLinkIcon, CloseIcon } from './AdminIcons';
+import { useAuth } from '@/contexts/AuthContext';
+import { ClipboardIcon, BoxIcon, TagIcon, UsersIcon, LayersIcon, ExternalLinkIcon, CloseIcon, DeliveryIcon } from './AdminIcons';
 
 const navItems = [
     { href: '/admin/orders', label: 'Pedidos', icon: ClipboardIcon },
     { href: '/admin/products', label: 'Produtos', icon: BoxIcon },
     { href: '/admin/categories', label: 'Categorias', icon: TagIcon },
     { href: '/admin/addons', label: 'Adicionais', icon: LayersIcon },
+    { href: '/admin/entregadores', label: 'Entregadores', icon: DeliveryIcon },
     { href: '/admin/users', label: 'Usuários', icon: UsersIcon },
 ];
 
@@ -20,6 +22,14 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const pathname = usePathname();
+    const { user } = useAuth();
+
+    const RESTRICTED_EMAIL = 'gustavo@fruitamix.com';
+    const isRestricted = user?.email === RESTRICTED_EMAIL;
+
+    const visibleItems = isRestricted
+        ? navItems.filter(item => item.href !== '/admin/entregadores' && item.href !== '/admin/users')
+        : navItems;
 
     return (
         <>
@@ -43,7 +53,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 </div>
 
                 <nav className="admin-sidebar-nav">
-                    {navItems.map(item => {
+                    {visibleItems.map(item => {
                         const isActive = pathname.startsWith(item.href);
                         return (
                             <Link

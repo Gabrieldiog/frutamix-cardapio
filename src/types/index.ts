@@ -107,8 +107,31 @@ export interface AdminUser {
     created_at: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
 
 export interface OrderWithItems extends Order {
     order_items: OrderItem[];
+}
+
+export interface DeliveryDriver {
+    id: string;
+    name: string;
+    phone: string;
+    access_code: string;
+    active: boolean;
+    total_deliveries: number;
+    created_at: string;
+}
+
+export interface DeliveryLocation {
+    lat: number;
+    lng: number;
+    timestamp: number;
+}
+
+export interface DeliveryTracking {
+    driver_id: string;
+    driver_name: string;
+    location: DeliveryLocation;
+    active: boolean;
 }

@@ -128,3 +128,16 @@ export function CloseIcon({ size = 24, color = 'currentColor' }: IconProps) {
         </svg>
     );
 }
+
+export function DeliveryIcon({ size = 24, color = 'currentColor' }: IconProps) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="7" cy="18" r="2" />
+            <circle cx="17" cy="18" r="2" />
+            <path d="M5 18H3V11l2-4h4l3 5h4V7" />
+            <path d="M15 18h-5" />
+            <path d="M19 18h2v-5l-3-5h-3" />
+        </svg>
+    );
+}
+
