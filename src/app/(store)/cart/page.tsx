@@ -99,10 +99,6 @@ export default function CartPage() {
                                 <span className="cart-summary-label">Subtotal</span>
                                 <span className="cart-summary-value">{formatPrice(total)}</span>
                             </div>
-                            <div className="cart-summary-row">
-                                <span className="cart-summary-label">Taxa de entrega</span>
-                                <span className="cart-summary-value" style={{ color: 'var(--success)' }}>Grátis</span>
-                            </div>
                             <div className="cart-summary-row total">
                                 <span className="cart-summary-label">Total</span>
                                 <span className="cart-summary-value">{formatPrice(total)}</span>

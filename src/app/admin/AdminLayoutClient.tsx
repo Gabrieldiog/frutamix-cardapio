@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+import AdminNotifications from '@/components/admin/AdminNotifications';
 import './admin.css';
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
@@ -40,6 +41,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <div className="admin-main">
                 <AdminHeader onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+                <AdminNotifications />
                 <div className="admin-content">{children}</div>
             </div>
         </div>

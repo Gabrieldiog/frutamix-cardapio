@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { notifyAdmins } from '@/lib/pushNotify';
 
 export async function POST(request: NextRequest) {
     try {
@@ -71,6 +72,12 @@ export async function POST(request: NextRequest) {
             await supabase.from('orders').delete().eq('id', order.id);
             return NextResponse.json({ error: 'Erro ao salvar itens do pedido.' }, { status: 500 });
         }
+
+        // Notifica admins (fire-and-forget)
+        const priceStr = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        notifyAdmins('Novo Pedido!', `${customer_name} — ${priceStr}`).catch(err => {
+            console.error('Push notification failed:', err);
+        });
 
         return NextResponse.json({ order }, { status: 201 });
     } catch (err) {

@@ -34,7 +34,6 @@ export default function AdminOrdersPage() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<FilterType>('all');
     const [updatingId, setUpdatingId] = useState<string | null>(null);
-
     const fetchOrders = useCallback(async () => {
         const res = await fetch('/api/admin/orders');
         const data = await res.json();
@@ -44,7 +43,7 @@ export default function AdminOrdersPage() {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 30000);
+        const interval = setInterval(fetchOrders, 10000);
         return () => clearInterval(interval);
     }, [fetchOrders]);
 

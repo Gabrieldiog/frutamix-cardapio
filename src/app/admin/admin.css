@@ -566,6 +566,223 @@
 /* Order Filters        */
 /* ==================== */
 
+/* Notification Banner */
+.notif-banner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 0 32px 0;
+    background: #F5F3FF;
+    border: 1px solid #DDD6FE;
+    border-radius: var(--radius-md);
+    color: #5B21B6;
+}
+
+.notif-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-banner-content > svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.notif-banner-title {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
+.notif-banner-hint {
+    margin: 2px 0 0;
+    font-size: 0.73rem;
+    opacity: 0.65;
+}
+
+.notif-banner-actions {
+    margin-top: 8px;
+}
+
+.notif-banner-dismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #7C3AED;
+    opacity: 0.5;
+    border-radius: 4px;
+}
+
+.notif-banner-dismiss:hover {
+    opacity: 1;
+    background: #EDE9FE;
+}
+
+/* Banner: bloqueado */
+.notif-banner--denied {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #991B1B;
+}
+
+.notif-banner--denied .notif-banner-dismiss {
+    color: #991B1B;
+}
+
+.notif-banner--denied .notif-banner-dismiss:hover {
+    background: #FEE2E2;
+}
+
+.notif-banner--denied .notif-banner-content {
+    margin-bottom: 0;
+}
+
+.notif-banner-steps {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.notif-banner-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.notif-banner-steps li svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.6;
+}
+
+.notif-banner-steps strong {
+    white-space: nowrap;
+}
+
+/* Banner: sucesso */
+.notif-banner--success {
+    background: #F0FDF4;
+    border-color: #BBF7D0;
+    color: #166534;
+}
+
+.notif-banner--success .notif-banner-content {
+    margin-bottom: 0;
+}
+
+.notif-banner--success .notif-banner-dismiss {
+    color: #166534;
+}
+
+.notif-banner--success .notif-banner-dismiss:hover {
+    background: #DCFCE7;
+}
+
+/* Toast Notifications */
+.notif-toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 340px;
+    width: 100%;
+}
+
+.notif-toast {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-left: 4px solid #8B5CF6;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    animation: notif-slide-in 0.3s ease-out;
+    transition: opacity 0.2s;
+}
+
+.notif-toast:hover {
+    border-left-color: #7C3AED;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+}
+
+.notif-toast-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #8B5CF6;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.notif-toast-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: #9CA3AF;
+    border-radius: 4px;
+}
+
+.notif-toast-close:hover {
+    color: #4B5563;
+    background: #F3F4F6;
+}
+
+.notif-toast-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.notif-toast-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.notif-toast-total {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #059669;
+    white-space: nowrap;
+}
+
+.notif-toast-action {
+    margin: 6px 0 0;
+    font-size: 0.7rem;
+    color: #9CA3AF;
+}
+
+@keyframes notif-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .admin-order-notice {
     background: #FFF8E1;
     color: #F57F17;

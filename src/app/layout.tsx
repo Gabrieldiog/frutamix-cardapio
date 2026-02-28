@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     icon: '/favicon.jpg',
     apple: '/favicon.jpg',
   },
+  manifest: '/manifest.json',
   openGraph: {
     title: 'FrutaMix — Cardápio Digital',
     description: 'Peça sua salada de frutas e açaí favorita online!',
