@@ -101,6 +101,370 @@ export default function AdminOrdersPage() {
 
     const activeCount = orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length;
 
+    const generateOrderPrint = (order: OrderWithItems) => {
+        const orderNumber = orderNumberMap.get(order.id) || `#${order.id.slice(0, 8).toUpperCase()}`;
+        const dateStr = formatDateTime(order.created_at);
+        const paymentLabel = PAYMENT_LABELS[order.payment_method] || order.payment_method;
+        const statusLabel = STATUS_CONFIG[order.status as OrderStatus]?.label || order.status;
+        const logoUrl = window.location.origin + '/logo.jpg';
+
+        const itemsHtml = order.order_items.map(item => {
+            const addonsByGroup: Record<string, { name: string; price: number }[]> = {};
+            if (item.addons && item.addons.length > 0) {
+                for (const a of item.addons) {
+                    const groupName = a.group || 'Adicionais';
+                    if (!addonsByGroup[groupName]) addonsByGroup[groupName] = [];
+                    addonsByGroup[groupName].push({ name: a.name, price: a.price });
+                }
+            }
+
+            const addonsHtml = Object.entries(addonsByGroup).map(([groupName, addons]) => `
+                <div class="addon-group">
+                    <span class="addon-group-name">${groupName}:</span>
+                    ${addons.map(a =>
+                        `<span class="addon-item">${a.name} <span class="${a.price > 0 ? 'addon-price' : 'addon-free'}">${a.price > 0 ? `+${formatPrice(a.price)}` : 'grátis'}</span></span>`
+                    ).join('')}
+                </div>
+            `).join('');
+
+            return `
+                <div class="item-row">
+                    <div class="item-qty">${item.quantity}x</div>
+                    <div class="item-details">
+                        <div class="item-name">${item.product_name}</div>
+                        ${addonsHtml}
+                    </div>
+                    <div class="item-price">${formatPrice(item.subtotal)}</div>
+                </div>
+            `;
+        }).join('');
+
+        const changeHtml = order.payment_method === 'dinheiro' && order.change_for
+            ? `<div class="info-row"><span>Troco para</span><span>${formatPrice(order.change_for)}</span></div>`
+            : '';
+
+        const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>${orderNumber} - FrutaMix</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 32px;
+            max-width: 440px;
+            margin: 0 auto;
+            color: #1a1a2e;
+            background: #fff;
+        }
+
+        /* === HEADER === */
+        .receipt {
+            border: 2px solid #e8e0f3;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .receipt-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+            padding: 28px 24px;
+            text-align: center;
+            color: #fff;
+        }
+        .receipt-header img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.3);
+            margin-bottom: 12px;
+        }
+        .receipt-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .receipt-header .doc-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* === ORDER META === */
+        .order-meta {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: #f8f5ff;
+            border-bottom: 1px solid #e8e0f3;
+            font-size: 13px;
+        }
+        .order-meta strong {
+            color: #7c3aed;
+            font-weight: 700;
+        }
+        .order-meta .status {
+            background: #7c3aed;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* === BODY === */
+        .receipt-body { padding: 24px; }
+
+        /* === SECTION === */
+        .section { margin-bottom: 20px; }
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        /* === CUSTOMER === */
+        .customer-card {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 14px 16px;
+            border: 1px solid #f0f0f5;
+        }
+        .customer-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .customer-info {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        .customer-info svg {
+            width: 13px;
+            height: 13px;
+            vertical-align: -2px;
+            margin-right: 4px;
+            opacity: 0.5;
+        }
+
+        /* === ITEMS === */
+        .item-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-qty {
+            background: #7c3aed;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 30px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .item-details { flex: 1; }
+        .item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .item-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            white-space: nowrap;
+        }
+        .addon-group {
+            margin-top: 4px;
+            padding-left: 2px;
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.7;
+        }
+        .addon-group-name {
+            font-weight: 600;
+            color: #7c3aed;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .addon-item {
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .addon-item::after { content: ','; color: #d1d5db; }
+        .addon-item:last-child::after { content: ''; }
+        .addon-price {
+            font-size: 11px;
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        .addon-free {
+            font-size: 10px;
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* === TOTALS === */
+        .totals-section {
+            background: #f8f5ff;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e8e0f3;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #6b7280;
+            padding: 4px 0;
+        }
+        .info-row span:last-child { font-weight: 600; color: #374151; }
+        .total-divider {
+            height: 2px;
+            background: linear-gradient(90deg, #7c3aed, #9333ea);
+            border-radius: 2px;
+            margin: 10px 0;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .total-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #7c3aed;
+        }
+
+        /* === FOOTER === */
+        .receipt-footer {
+            text-align: center;
+            padding: 20px 24px;
+            border-top: 1px dashed #e5e7eb;
+            font-size: 12px;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+        .receipt-footer strong { color: #7c3aed; }
+
+        @media print {
+            body { padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .receipt { border: none; }
+            @page { margin: 12mm 8mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="receipt-header">
+            <img src="${logoUrl}" alt="FrutaMix" />
+            <h1>FrutaMix</h1>
+            <div class="doc-type">Recibo de Pedido</div>
+        </div>
+
+        <div class="order-meta">
+            <div>
+                <strong>${orderNumber}</strong>
+                <span style="color:#6b7280;margin-left:8px;">${dateStr}</span>
+            </div>
+            <span class="status">${statusLabel}</span>
+        </div>
+
+        <div class="receipt-body">
+            <div class="section">
+                <div class="section-label">Cliente</div>
+                <div class="customer-card">
+                    <div class="customer-name">${order.customer_name}</div>
+                    <div class="customer-info">
+                        ${order.customer_phone ? `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${order.customer_phone}</div>` : ''}
+                        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${order.customer_address}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-label">Itens do Pedido</div>
+                ${itemsHtml}
+            </div>
+
+            <div class="section" style="margin-bottom:0">
+                <div class="section-label">Pagamento</div>
+                <div class="totals-section">
+                    <div class="info-row">
+                        <span>Forma de pagamento</span>
+                        <span>${paymentLabel}</span>
+                    </div>
+                    ${changeHtml}
+                    <div class="total-divider"></div>
+                    <div class="total-row">
+                        <span class="total-label">Total</span>
+                        <span class="total-value">${formatPrice(order.total)}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="receipt-footer">
+            <strong>FrutaMix</strong> &mdash; Obrigado pela preferência!
+        </div>
+    </div>
+
+</body>
+</html>`;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.style.left = '-9999px';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+            doc.open();
+            doc.write(html);
+            doc.close();
+            iframe.onload = () => {
+                iframe.contentWindow?.print();
+                setTimeout(() => iframe.remove(), 1000);
+            };
+        }
+    };
+
     if (loading) return <div className="admin-loading">Carregando...</div>;
 
     return (
@@ -156,9 +520,22 @@ export default function AdminOrdersPage() {
                                         </div>
                                         <div className="admin-order-time">{formatDateTime(order.created_at)}</div>
                                     </div>
-                                    <span className={`badge ${config.className}`}>
-                                        {config.label}
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <button
+                                            className="admin-order-print-btn"
+                                            title="Imprimir / PDF"
+                                            onClick={() => generateOrderPrint(order)}
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="6 9 6 2 18 2 18 9" />
+                                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                                                <rect x="6" y="14" width="12" height="8" />
+                                            </svg>
+                                        </button>
+                                        <span className={`badge ${config.className}`}>
+                                            {config.label}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="admin-order-customer">

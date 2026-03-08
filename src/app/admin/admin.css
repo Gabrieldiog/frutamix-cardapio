@@ -849,6 +849,26 @@
     margin-bottom: 12px;
 }
 
+.admin-order-print-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.admin-order-print-btn:hover {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
 .admin-order-id {
     font-size: 0.82rem;
     font-weight: 700;
