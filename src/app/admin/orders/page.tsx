@@ -380,7 +380,36 @@ export default function AdminOrdersPage() {
         }
         .receipt-footer strong { color: #7c3aed; }
 
+        /* === PRINT ACTIONS === */
+        .print-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .btn-print, .btn-share {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-print {
+            background: #7c3aed;
+            color: #fff;
+        }
+        .btn-share {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
         @media print {
+            .print-actions { display: none !important; }
             body { padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .receipt { border: none; }
             @page { margin: 12mm 8mm; }
@@ -442,27 +471,21 @@ export default function AdminOrdersPage() {
         </div>
     </div>
 
+    <div class="print-actions">
+        <button class="btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+        <button class="btn-share" id="shareBtn" style="display:none" onclick="shareReceipt()">Compartilhar</button>
+    </div>
+
+    <script>
+        if (navigator.share) document.getElementById('shareBtn').style.display = 'inline-flex';
+        function shareReceipt() {
+            navigator.share({ title: '${orderNumber} - FrutaMix', text: 'Recibo ${orderNumber} - ${order.customer_name} - ${formatPrice(order.total)}' }).catch(function(){});
+        }
+    </script>
 </body>
 </html>`;
 
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = 'none';
-        iframe.style.left = '-9999px';
-        document.body.appendChild(iframe);
-
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (doc) {
-            doc.open();
-            doc.write(html);
-            doc.close();
-            iframe.onload = () => {
-                iframe.contentWindow?.print();
-                setTimeout(() => iframe.remove(), 1000);
-            };
-        }
+        window.open('', '_blank')?.document.write(html);
     };
 
     if (loading) return <div className="admin-loading">Carregando...</div>;
