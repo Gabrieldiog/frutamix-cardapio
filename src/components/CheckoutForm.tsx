@@ -85,6 +85,44 @@ export default function CheckoutForm() {
             }
 
             const data = await res.json();
+
+            // Montar mensagem do WhatsApp ANTES de limpar o carrinho (itens ainda disponíveis)
+            const paymentLabels: Record<string, string> = {
+                pix: 'Pix',
+                cartao: 'Cartão',
+                dinheiro: 'Dinheiro',
+            };
+            const itemsText = items.map(item => {
+                const addonsPrice = (item.addons || []).reduce((s, a) => s + a.price, 0);
+                const unitPrice = item.product.price + addonsPrice;
+                let line = `• ${item.quantity}x ${item.product.name} — ${formatPrice(unitPrice * item.quantity)}`;
+                if (item.addons && item.addons.length > 0) {
+                    line += `\n   ↳ ${item.addons.map(a => a.name).join(', ')}`;
+                }
+                return line;
+            }).join('\n');
+            const changeText = paymentMethod === 'dinheiro' && !noChangeNeeded && changeFor
+                ? `💵 *Troco para:* ${formatPrice(parseFloat(changeFor))}\n`
+                : '';
+            const whatsappMessage =
+                `🍓 *Pedido - FrutaMix*\n\n` +
+                `👤 *Nome:* ${name.trim()}\n` +
+                `📱 *Telefone:* ${phone.trim()}\n` +
+                `📍 *Endereço:* ${address.trim()}\n\n` +
+                `🛍️ *Itens:*\n${itemsText}\n\n` +
+                `${changeText}` +
+                `💳 *Pagamento:* ${paymentLabels[paymentMethod as string] || paymentMethod}\n` +
+                `💰 *Total: ${formatPrice(total)}*\n\n` +
+                `_Pedido enviado pelo cardápio digital_ 🚀`;
+            // Salva URL do WhatsApp no localStorage (sessionStorage é apagado pelo iOS Safari durante navegação).
+            // Timestamp garante que entradas antigas sejam ignoradas.
+            try {
+                localStorage.setItem('frutamix-whatsapp', JSON.stringify({
+                    url: `https://wa.me/5562994191770?text=${encodeURIComponent(whatsappMessage)}`,
+                    ts: Date.now(),
+                }));
+            } catch { /* ignore */ }
+
             clearCart();
 
             // Salvar pedido no localStorage para rastreamento
